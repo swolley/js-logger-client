@@ -136,6 +136,11 @@ var Logger = function() {
 	 * @param {string} now datetime to locale string
 	 */
 	var _file = (level, content, now) => { 
+		if (!_configs.filePath) { 
+			_console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
+			return;
+		}
+
 		fs.appendFile(_configs.filePath, '[' + now + '] ' + level.toUpperCase() + ': ' + JSON.stringify(content) + os.EOL, (error) => { 
 			if (error) { 
 				_console(LogLevel.ERROR, error, now, 'file handler');
@@ -151,6 +156,11 @@ var Logger = function() {
 	 * @param {object} hostInfo local host info
 	 */
 	var _http = (level, content, now, hostInfo) => {
+		if (!_configs.httpOptions) { 
+			_console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
+			return;
+		}
+		
 		var postOptions = {
 			hostname: _configs.httpOptions.host,
 			port: _configs.httpOptions.port,
@@ -188,6 +198,11 @@ var Logger = function() {
 	 * @param {object} hostInfo local host info
 	 */
 	var _email = (level, content, now, hostInfo) => { 
+		if (!_configs.emailOptions) { 
+			_console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
+			return;
+		}
+
 		let transporter = mail.createTransport({
 			service: _configs.emailOptions.service,
 			auth: {
