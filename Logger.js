@@ -128,7 +128,7 @@ var Logger = function() {
 	var _file = (level, content, now) => { 
 		fs.appendFile(_configs.filePath, '[' + now + '] ' + level.toUpperCase() + ': ' + JSON.stringify(content) + '\n', (error) => { 
 			if (error) { 
-				console.log('[' + now + '] FILE HANDLER ERROR: ' + error);
+				console.log('[' + now + '] FILE HANDLER ERROR: ' + JSON.stringify(error));
 			}
 		});
 	}
@@ -153,11 +153,11 @@ var Logger = function() {
 		};
 
 		var request = https.request(postOptions, (res) => {
-			console.log("Response: " + resp.statusCode);
+			console.log("Response: " + JSON.stringify(resp.statusCode));
 		});
 		
 		request.on('error', (error) => { 
-			console.log('[' + now + '] HTTP HANDLER ERROR: ' + error);
+			console.log('[' + now + '] HTTP HANDLER ERROR: ' + JSON.stringify(error));
 		});
 
 		request.write(JSON.stringify({
@@ -206,7 +206,7 @@ var Logger = function() {
 
 		transporter.sendMail(mailOptions, (error, info) => { 
 			if (error) {
-				console.log('[' + now + '] EMAIL HANDLER ERROR: ' + error);
+				console.log('[' + now + '] EMAIL HANDLER ERROR: ' + JSON.stringify(error));
 			}
 		});
 	}
@@ -238,8 +238,9 @@ var Logger = function() {
 						});
 					break;
 				}
-			} catch(e){
-				console.log(e);
+			} catch(error){
+				let now = (new Date()).toLocaleString();
+				console.log('[' + now + '] HANDLER REGISTERING ERROR: ' + JSON.stringify(error));
 				process.exit(-2);
 			}
 		},
@@ -262,7 +263,7 @@ var Logger = function() {
 			};
 	
 			//always logs in console
-			console.log('[' + now + '] ' + level.toUpperCase() + ': ' + content + '\n');
+			console.log('[' + now + '] ' + level.toUpperCase() + ': ' + JSON.stringify(content));
 		
 			if (mode & LogHandler.FILE && _configs.filePath) { 
 				_file(level, content, now);
