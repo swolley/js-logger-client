@@ -120,15 +120,25 @@ var Logger = function() {
 	}
 
 	/**
+	 * write log to console
+	 * @param {string} level log level
+	 * @param {mixed} content data or message to log
+	 * @param {string} now datetime to locale string
+	 */
+	var _console = (level, content, now, description = "") => {
+		console.log(`[${now}] ${level}: ${description ? description + ' ' : ''}` + JSON.stringify(content));
+	}
+
+	/**
 	 * write log to file
 	 * @param {string} level log level
 	 * @param {mixed} content data or message to log
 	 * @param {string} now datetime to locale string
 	 */
 	var _file = (level, content, now) => { 
-		fs.appendFile(_configs.filePath, '[' + now + '] ' + level.toUpperCase() + ': ' + JSON.stringify(content) + '\n', (error) => { 
+		fs.appendFile(_configs.filePath, '[' + now + '] ' + level.toUpperCase() + ': ' + JSON.stringify(content) + os.EOL, (error) => { 
 			if (error) { 
-				console.log('[' + now + '] FILE HANDLER ERROR: ' + JSON.stringify(error));
+				_console(LogLevel.ERROR, error, now, 'file handler');
 			}
 		});
 	}
@@ -153,11 +163,11 @@ var Logger = function() {
 		};
 
 		var request = https.request(postOptions, (res) => {
-			console.log("Response: " + JSON.stringify(resp.statusCode));
+			console.log("Response: " + resp.statusCode);
 		});
 		
 		request.on('error', (error) => { 
-			console.log('[' + now + '] HTTP HANDLER ERROR: ' + JSON.stringify(error));
+			_console(LogLevel.ERROR, error, now, 'http handler');
 		});
 
 		request.write(JSON.stringify({
@@ -206,7 +216,7 @@ var Logger = function() {
 
 		transporter.sendMail(mailOptions, (error, info) => { 
 			if (error) {
-				console.log('[' + now + '] EMAIL HANDLER ERROR: ' + JSON.stringify(error));
+				_console(LogLevel.ERROR, error, now, 'email handler');
 			}
 		});
 	}
@@ -221,26 +231,26 @@ var Logger = function() {
 			try {
 				switch (handler) {
 					case LogHandler.FILE:
-						_setFile(configs, (error) => { 
-							throw error;
-						});
-						break;
+					_setFile(configs, (error) => { 
+						throw error;
+					});
+					break;
 					
 					case LogHandler.HTTP:
-						_setHttp(configs, (error) => { 
-							throw error;
-						});
-						break;
+					_setHttp(configs, (error) => { 
+						throw error;
+					});
+					break;
 					
 					case LogHandler.EMAIL:
-						_setEmail(configs, (error) => { 
-							throw error;
-						});
+					_setEmail(configs, (error) => { 
+						throw error;
+					});
 					break;
 				}
 			} catch(error){
 				let now = (new Date()).toLocaleString();
-				console.log('[' + now + '] HANDLER REGISTERING ERROR: ' + JSON.stringify(error));
+				_console(LogLevel.ERROR, error, now, 'handlers registerer');
 				process.exit(-2);
 			}
 		},
@@ -263,7 +273,7 @@ var Logger = function() {
 			};
 	
 			//always logs in console
-			console.log('[' + now + '] ' + level.toUpperCase() + ': ' + JSON.stringify(content));
+			_console(level.toUpperCase(), content, now);
 		
 			if (mode & LogHandler.FILE && _configs.filePath) { 
 				_file(level, content, now);
