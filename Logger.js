@@ -104,8 +104,10 @@ var Logger = function() {
 			errorCallback('url parameter must be a string');
 		}
 
-		if (typeof configs.port !== 'number') {
-			errorCallback('port parameter must be a number');
+		if (typeof configs.port !== 'undefined') {
+			if (typeof configs.port !== 'number') {
+				errorCallback('port parameter must be a number');
+			}
 		}
 
 		if (typeof configs.path !== 'string') {
@@ -114,8 +116,11 @@ var Logger = function() {
 
 		_configs.httpOptions = {
 			host: configs.host,
-			port: configs.port,
 			path: configs.path
+		}
+
+		if (configs.port !== 'undefined') { 
+			_configs.httpOptions.port = configs.port;
 		}
 	}
 
@@ -162,8 +167,7 @@ var Logger = function() {
 		}
 		
 		var postOptions = {
-			hostname: _configs.httpOptions.host,
-			port: _configs.httpOptions.port,
+			host: _configs.httpOptions.host,
 			path: _configs.httpOptions.path,
 			method: 'POST',
 			headers: {
@@ -172,9 +176,11 @@ var Logger = function() {
 			}
 		};
 
-		var request = https.request(postOptions, (res) => {
-			console.log("Response: " + resp.statusCode);
-		});
+		if (typeof _configs.httpOptions.port !== 'undefined') { 
+			postOptions.port = _configs.httpOptions.port;
+		}
+
+		var request = https.request(postOptions);
 		
 		request.on('error', (error) => { 
 			_console(LogLevel.ERROR, error, now, 'http handler');
@@ -204,11 +210,10 @@ var Logger = function() {
 		}
 
 		let transporter = mail.createTransport({
-			service: _configs.emailOptions.service,
+			host: _configs.emailOptions.host,
+			port: _configs.emailOptions.port,
+			secure: _configs.emailOptions.secure,
 			auth: {
-				host: _configs.emailOptions.host,
-				port: _configs.emailOptions.port,
-				secure: _configs.emailOptions.secure,
 				user: _configs.emailOptions.user,
 				pass: _configs.emailOptions.pass
 			}
@@ -229,7 +234,7 @@ var Logger = function() {
 			${parsedContent}`
 		}
 
-		transporter.sendMail(mailOptions, (error, info) => { 
+		transporter.sendMail(mailOptions, (error, resp) => { 
 			if (error) {
 				_console(LogLevel.ERROR, error, now, 'email handler');
 			}
@@ -277,7 +282,7 @@ var Logger = function() {
 		 * @param {integer} mode type of log method
 		 */
 		create: (level, content, mode = 0) => { 
-			let now = (new Date()).toLocaleString();
+			let now = (new Date()).toLocaleString('en-GB');
 			
 			let localHost = {
 				hostname: os.hostname(),
@@ -287,18 +292,20 @@ var Logger = function() {
 				networkInterfaces: os.networkInterfaces()
 			};
 	
-			//always logs in console
-			_console(level.toUpperCase(), content, now);
-		
-			if (mode & LogHandler.FILE && _configs.filePath) { 
+			//default if no mode is specified = console
+			if (mode === 0) {
+				_console(level.toUpperCase(), content, now);
+			}
+
+			if (mode & LogHandler.FILE) { 
 				_file(level, content, now);
 			}
-		
-			if (mode & LogHandler.EMAIL && _configs.emailOptions) { 
+			
+			if (mode & LogHandler.EMAIL) { 
 				_email(level, content, now, localHost);
 			}
-		
-			if (mode & LogHandler.HTTP && _configs.httpOptions) {
+			
+			if (mode & LogHandler.HTTP) {
 				_http(level, content, now, localHost);
 			}
 		}
