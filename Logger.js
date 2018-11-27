@@ -185,13 +185,20 @@ var Logger = function() {
 		request.on('error', (error) => { 
 			_console(LogLevel.ERROR, error, now, 'http handler');
 		});
-
-		request.write(JSON.stringify({
+		
+		let log = {
 			datetime: now,
 			level,
 			content,
-			host: hostInfo
-		}));
+			host: hostInfo,
+		};
+		
+		if(content instanceof Error) {
+			log.backtrace = content.stack;
+			log.content = content.message;
+		}
+		
+		request.write(JSON.stringify(log));
 	
 		request.end();
 	}
