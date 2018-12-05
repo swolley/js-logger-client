@@ -18,9 +18,10 @@ const LogLevel = {
 	ERROR: "ERROR"
 };
 
-var Logger = function() {
-	 
+var Logger = function(projectId = null) {
+	
 	//main configs
+	var _projectId = projectId;
 	var _configs = {
 		filePath: null,
 		httpOptions: null,
@@ -85,8 +86,7 @@ var Logger = function() {
 			user: configs.user,
 			pass: configs.pass,
 			from: configs.from,
-			to: configs.to,
-			subject: configs.subject
+			to: configs.to
 		};
 	}
 
@@ -232,9 +232,10 @@ var Logger = function() {
 		let mailOptions = {
 			from: _configs.emailOptions.from,
 			to: _configs.emailOptions.to,
-			subject: `${level}: ${_configs.emailOptions.subject}`,
+			subject: _projectId ? _projectId + ' ' : '' + `${level} Message from Logger`,
 			text: `--------------------------- INFO -------------------------------
-			${now}
+			datetime:\t${now}
+			projectId:\t${_projectId}
 			---------------------------- HOST ------------------------------
 			${parsedHost}
 			---------------------------- ERROR ------------------------------
