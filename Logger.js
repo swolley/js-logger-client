@@ -104,7 +104,7 @@ var Logger = function(projectId = null) {
 			to: configs.to
 		};
 		_configs.email.levelTrigger = levelTrigger;
-		_configs.mail.enabled = true;
+		_configs.email.enabled = true;
 	}
 
 	/**
