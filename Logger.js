@@ -176,7 +176,7 @@ var Logger = function(projectId = null) {
 	 * @param {string} now datetime to locale string
 	 */
 	var _file = (level, content, now) => { 
-	    if(_configs.file.enabled && level[0] >= _configs.file.levelTrigger) {
+	    if(_configs.file.enabled && level[0] >= _configs.file.levelTrigger[0]) {
 		    if (!_configs.file.path) { 
 			    _console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
 			    return;
@@ -198,7 +198,7 @@ var Logger = function(projectId = null) {
 	 * @param {object} hostInfo local host info
 	 */
 	var _http = (level, content, now, hostInfo) => {
-		if(_configs.http.enabled && level[0] >= _configs.http.levelTrigger) {
+		if(_configs.http.enabled && level[0] >= _configs.http.levelTrigger[0]) {
 		    if (!_configs.http.options) { 
 			    _console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
 			    return;
@@ -250,7 +250,7 @@ var Logger = function(projectId = null) {
 	 * @param {object} hostInfo local host info
 	 */
 	var _email = (level, content, now, hostInfo) => { 
-	    if(_configs.email.enabled && level[0] >= _configs.email.levelTrigger) {
+	    if(_configs.email.enabled && level[0] >= _configs.email.levelTrigger[0]) {
 		    if (!_configs.email.options) { 
 			    _console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
 			    return;
