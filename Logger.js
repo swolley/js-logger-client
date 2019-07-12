@@ -19,7 +19,7 @@ const LogLevel = {
 	ERROR: [3, "ERROR"]
 };
 
-var Logger = function(LogLevelprojectId = null) {
+var Logger = function(projectId = null) {
 	
 	//main configs
 	var _projectId = projectId;
