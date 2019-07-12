@@ -22,15 +22,23 @@ const LogLevel = {
 var Logger = function(LogLevelprojectId = null) {
 	
 	//main configs
-    var _levelTrigger = levelTrigger;
 	var _projectId = projectId;
 	var _configs = {
-		filePath: null,
-		httpOptions: null,
-		emailOptions: null,
-		fileLevelTrigger: null,
-		httpLevelTrigger: null,
-		emailLevelTrigger: null
+		file: {
+			enabled: false,
+			path: null,
+			levelTrigger: null
+		},
+		http: {
+			enabled: false,
+			options: null,
+			levelTrigger: null
+		},
+		email: {
+			enabled: false,
+			options: null,
+			levelTrigger: null,
+		}
 	};
 
 	/**
@@ -43,8 +51,9 @@ var Logger = function(LogLevelprojectId = null) {
 			errorCallback('log to file parameter must be a string');
 		}
 
-		_configs.filePath = path;
-		_configs.fileLevelTrigger = levelTrigger;
+		_configs.file.path = path;
+		_configs.file.levelTrigger = levelTrigger;
+		_configs.file.enabled = true;
 	}
 
 	/**
@@ -85,7 +94,7 @@ var Logger = function(LogLevelprojectId = null) {
 			errorCallback('subject must be a string');
 		}
 		
-		_configs.emailOptions = {
+		_configs.email.options = {
 			configs: configs.host,
 			port: configs.port,
 			secure: configs.secure,
@@ -94,7 +103,8 @@ var Logger = function(LogLevelprojectId = null) {
 			from: configs.from,
 			to: configs.to
 		};
-		_configs.emailLevelTrigger = levelTrigger;
+		_configs.email.levelTrigger = levelTrigger;
+		_configs.mail.enabled = true;
 	}
 
 	/**
@@ -121,15 +131,16 @@ var Logger = function(LogLevelprojectId = null) {
 			errorCallback('path parameter must be a string');
 		}
 
-		_configs.httpOptions = {
+		_configs.http.options = {
 			host: configs.host,
 			path: configs.path
 		}
 
 		if (configs.port !== 'undefined') { 
-			_configs.httpOptions.port = configs.port;
+			_configs.http.options.port = configs.port;
 		}
-		_configs.httpLevelTrigger = levelTrigger;
+		_configs.http.levelTrigger = levelTrigger;
+		_configs.http.enabled = true;
 	}
 
 	/**
@@ -165,13 +176,13 @@ var Logger = function(LogLevelprojectId = null) {
 	 * @param {string} now datetime to locale string
 	 */
 	var _file = (level, content, now) => { 
-	    if(level[0] >= _configs.fileLevelTrigger) {
-		    if (!_configs.filePath) { 
+	    if(_configs.file.enabled && level[0] >= _configs.file.levelTrigger) {
+		    if (!_configs.file.path) { 
 			    _console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
 			    return;
 		    }
 
-		    fs.appendFile(_configs.filePath, '[' + now + '] ' + level[1].toUpperCase() + ': ' + JSON.stringify(content) + os.EOL, (error) => { 
+		    fs.appendFile(_configs.file.path, '[' + now + '] ' + level[1].toUpperCase() + ': ' + JSON.stringify(content) + os.EOL, (error) => { 
 			    if (error) { 
 				    _console(LogLevel.ERROR, error, now, 'file handler');
 			    }
@@ -187,15 +198,15 @@ var Logger = function(LogLevelprojectId = null) {
 	 * @param {object} hostInfo local host info
 	 */
 	var _http = (level, content, now, hostInfo) => {
-		if(level[0] >= _configs.httpLevelTrigger) {
-		    if (!_configs.httpOptions) { 
+		if(_configs.http.enabled && level[0] >= _configs.http.levelTrigger) {
+		    if (!_configs.http.options) { 
 			    _console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
 			    return;
 		    }
 		    
 		    var postOptions = {
-			    host: _configs.httpOptions.host,
-			    path: _configs.httpOptions.path,
+			    host: _configs.http.options.host,
+			    path: _configs.http.options.path,
 			    method: 'POST',
 			    headers: {
 				    'Accept': 'application/json',
@@ -203,8 +214,8 @@ var Logger = function(LogLevelprojectId = null) {
 			    }
 		    };
 
-		    if (typeof _configs.httpOptions.port !== 'undefined') { 
-			    postOptions.port = _configs.httpOptions.port;
+		    if (typeof _configs.http.options.port !== 'undefined') { 
+			    postOptions.port = _configs.http.options.port;
 		    }
 
 		    var request = https.request(postOptions);
@@ -215,7 +226,7 @@ var Logger = function(LogLevelprojectId = null) {
 		    
 		    let log = {
 			    datetime: now,
-			    level[1].toUpperCase(),
+			    level: level[1].toUpperCase(),
 			    content,
 			    host: hostInfo,
 		    };
@@ -239,19 +250,19 @@ var Logger = function(LogLevelprojectId = null) {
 	 * @param {object} hostInfo local host info
 	 */
 	var _email = (level, content, now, hostInfo) => { 
-	    if(level[0] >= _configs.emailLevelTrigger) {
-		    if (!_configs.emailOptions) { 
+	    if(_configs.email.enabled && level[0] >= _configs.email.levelTrigger) {
+		    if (!_configs.email.options) { 
 			    _console(LogLevel.WARNING, 'file handler not configured yet', now, 'file handler');
 			    return;
 		    }
 
 		    let transporter = mail.createTransport({
-			    host: _configs.emailOptions.host,
-			    port: _configs.emailOptions.port,
-			    secure: _configs.emailOptions.secure,
+			    host: _configs.email.options.host,
+			    port: _configs.email.options.port,
+			    secure: _configs.email.options.secure,
 			    auth: {
-				    user: _configs.emailOptions.user,
-				    pass: _configs.emailOptions.pass
+				    user: _configs.email.options.user,
+				    pass: _configs.email.options.pass
 			    }
 		    });
 
@@ -259,8 +270,8 @@ var Logger = function(LogLevelprojectId = null) {
 		    let parsedContent = JSON.stringify(content);
 
 		    let mailOptions = {
-			    from: _configs.emailOptions.from,
-			    to: _configs.emailOptions.to,
+			    from: _configs.email.options.from,
+			    to: _configs.email.options.to,
 			    subject: _projectId ? _projectId + ' ' : '' + `${level[1].toUpperCase()} Message from Logger`,
 			    text: `--------------------------- INFO -------------------------------
 			    datetime:\t${now}
@@ -289,15 +300,15 @@ var Logger = function(LogLevelprojectId = null) {
 			try {
 				switch (handler) {
 					case LogHandler.FILE:
-					_setFile(configs, levelTrigger, error => throw error);
+						_setFile(configs, levelTrigger, error => { throw error; });
 					break;
 					
 					case LogHandler.HTTP:
-					_setHttp(configs, levelTrigger, error => throw error);
+					_setHttp(configs, levelTrigger, error => { throw error; });
 					break;
 					
 					case LogHandler.EMAIL:
-					_setEmail(configs, levelTrigger, error => throw error);
+					_setEmail(configs, levelTrigger, error => { throw error; });
 					break;
 				}
 			} catch(error){
@@ -324,22 +335,10 @@ var Logger = function(LogLevelprojectId = null) {
 			    networkInterfaces: os.networkInterfaces()
 		    };
     
-		    //default if no mode is specified = console
-		    if (mode === 0) {
-			    _console(level, content, now);
-		    }
-
-		    if (mode & LogHandler.FILE) { 
-			    _file(level, content, now);
-		    }
-		    
-		    if (mode & LogHandler.EMAIL) { 
-			    _email(level, content, now, localHost);
-		    }
-		    
-		    if (mode & LogHandler.HTTP) {
-			    _http(level, content, now, localHost);
-		    }
+			_console(level, content, now);
+			_file(level, content, now);
+		    _email(level, content, now, localHost);
+			_http(level, content, now, localHost);
         }
 	}
 }
