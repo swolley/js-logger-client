@@ -15,7 +15,7 @@ const LogHandler = {
 const LogLevel = {
     DEBUG: [0, "DEBUG"],
 	INFO: [1, "INFO"],
-	WARN: [2, "WARN"],
+	WARN: [2, "WARNING"],
 	ERROR: [3, "ERROR"]
 };
 
